@@ -1,0 +1,230 @@
+1. Write a PHP and JS function that returns whether the first character in a string is alphanumeric
+
+/**** PHP ****/
+
+function firstAlphanumeric($str){
+	if(strlen($str) == 0) return false;
+	$pattern = '/[a-zAZ0-9]/';
+	preg_match_all($pattern, $str, $matches, PREG_SET_ORDER, 0);
+	if(!empty($matches)){
+		return $matches[0][0];
+	}
+	return false;
+}
+
+echo firstAlphanumeric('!@#$%^&*()1977pali');
+
+/**** JS ****/
+
+function firstAphanumeric(str){
+  var i = 0;
+  var regExp = /[a-zA-Z0-9]/;
+  while(i<=str.length){
+    var char = str.charAt(i);
+    if(regExp.test( char )) {
+      return char;
+    }
+    i++;
+  }
+  return false;
+}
+firstAphanumeric('=9876pali');
+
+2. Write PHP code that selects 3 columns from a database table and prints out each row.
+
+/**** PHP ****/
+
+class Select {
+	protected $pdo;
+	protected $columnNames = [];
+	protected $tableName;
+
+	public function __construct($host, $db, $user, $pass)
+	{
+		$dsn = "mysql:host=$host;dbname=$db";
+		$opt = [
+		    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+		];
+		try{
+			$this->pdo = new \PDO($dsn, $user, $pass, $opt);
+		} catch (Exception $e) {
+		    echo 'Caught exception: ',  $e->getMessage(), "\n";
+		}
+	}
+
+	public function setColumnNames(array $columns){
+		$this->columnNames = $columns;
+	}
+
+	public function getColumnNames(): array
+	{
+		return $this->columnNames;
+	}
+
+	public function addColumn($column){
+		$this->columnNames[] = $column;
+	}
+
+	public function removeColumn($toFind){
+		foreach($this->columnNames AS $key => $column){
+			if($column == $toFind){
+				unset($this->columnNames[$key]);
+				break;
+			}
+		}
+	}
+
+	public function setTableName($tableName){
+		$this->tableName = $tableName;
+	}
+
+	public function getTableName() : String
+	{
+		return $this->tableName;
+	}
+
+	private function generateQuery(): string 
+	{
+		return "SELECT " . join($this->getColumnNames(), ',') . " FROM " . $this->getTableName();
+	}
+
+	public function execute(): array
+	{
+		$sql = $this->generateQuery();
+		return $this->pdo->query($sql)->fetchAll();
+	}
+}
+
+$s = new Select('localhost:8889', 'cache', 'root', 'root');
+$s->setTableName('devices');
+$s->setColumnNames(['id']);
+$s->addColumn('name');
+$s->execute();
+
+/**** SQL ****/
+
+CREATE DATABASE cache;
+
+USE cache;
+
+CREATE TABLE `devices` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `devices` (`id`, `name`) VALUES
+(1, 'Router F1'),
+(2, 'Switch 1'),
+(3, 'Switch 2'),
+(4, 'Server');
+
+3. Write PHP code that can read data from a large CSV file. The CSV file has headers with two columns: "label","value". Then each row has a label and a numeric value. The script should read from the CSV file and aggregate the "value" per "label", ie. it should output a CSV with one row per label showing the sum of the values.
+
+/**** PHP ****/
+
+Class CSV {
+	protected $file;
+	protected $processed;
+
+	public function __construct($file){
+		if (!$file) {
+		    throw new Exception('File not found: ' . $file);
+		}
+		$this->file = $file;
+	}
+
+	public function read()
+	{
+		foreach(file($this->file) as $key => $line) 
+        {
+        	$row = str_getcsv($line);
+        	if($key == 0){
+        		$this->processed[] = $row;
+        		continue;
+        	}
+
+        	if(!isset($this->processed[$row[0]][0])){
+        		$this->processed[$row[0]][0] = $row[0];
+        	}
+
+        	if(!isset($this->processed[$row[0]][1])){
+        		$this->processed[$row[0]][1] = $row[1];
+        	} else {
+        		$this->processed[$row[0]][1] += $row[1]; 
+        	}
+        }
+	}
+
+	public function display()
+	{
+		foreach ($this->processed as $key => $value) {
+			echo join($value, ',');
+			echo '<br>';
+		}
+	}
+}
+
+$csv = new CSV('3.csv');
+$csv->read();
+$csv->display();
+
+/**** CSV ****/
+
+label,value
+John,1
+Jane,2
+James,2
+James,4
+
+4. Write a JS function that determines the missing element in an array containing all integers except for one between 1 and N
+
+/**** JS ****/
+
+function search(data){
+  if(!data){
+    return -1;
+  }
+
+  var sizeOfArray = data.length;
+  var incrementeLeftArray = 0;
+  var incrementeRightArray = sizeOfArray - 1;
+  var incrementeLoopWhile = 0;
+  var totalWhileLoop = Math.floor(sizeOfArray/2);
+
+  if((sizeOfArray%2) != 0){
+    totalWhileLoop += 1;
+  } 
+
+  while(incrementeLoopWhile != totalWhileLoop) {
+
+    if(incrementeLoopWhile > totalWhileLoop) {
+      break;
+    }
+    
+    if(!Number.isInteger(data[incrementeLeftArray])){
+      return data[incrementeLeftArray];
+    } else {
+      incrementeLeftArray++;
+    }
+
+    if(!Number.isInteger(data[incrementeRightArray])){
+      return data[incrementeRightArray];
+    } else {
+      incrementeRightArray--;
+    }
+    incrementeLoopWhile++;
+  }
+  return -1;
+}
+search([1,'e',2,3,4,5,6,7,8]);
+
+5. Say you have a balance scale with 8 marbles. 1 marble weighs more than the other 7, which all weigh the same. How would you determine which marble weighs more in as few steps as possible?
+
+Scenario 1:
+- Create 2 groups of 2 weighs and 6 weighs.
+- Weigh the group of 2 to determine the heaviest one.
+
+Scenario 2(if scenario 1 is not successful):
+- Place 3 weighs on each empty pan to determine the heaviest group of weighs.
+- Take out the lighter side of the scale.
+- Take out 2 of the heaviest group of the weighs, and place one of the 2 on the empty pan to determine the heaviest weigh(if the weigh are the same then the heaviest is the one not on the scale).

@@ -1,0 +1,10 @@
+5. Say you have a balance scale with 8 marbles. 1 marble weighs more than the other 7, which all weigh the same. How would you determine which marble weighs more in as few steps as possible?
+
+Scenario 1:
+- Create 2 groups of 2 weighs and 6 weighs.
+- Weigh the group of 2 to determine the heaviest one.
+
+Scenario 2(if scenario 1 is not successful):
+- Place 3 weighs on each empty pan to determine the heaviest group of weighs.
+- Take out the lighter side of the scale.
+- Take out 2 of the heaviest group of the weighs, and place one of the 2 on the empty pan to determine the heaviest weigh(if the weigh are the same then the heaviest is the one not on the scale).
